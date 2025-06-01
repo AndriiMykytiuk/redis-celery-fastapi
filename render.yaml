@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: fastapi-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: REDIS_URL
+        sync: false  # ❗ пароль задається в Render UI
+
+  - type: worker
+    name: celery-worker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A app.celery_worker worker --loglevel=info
+    envVars:
+      - key: REDIS_URL
+        sync: false
+
+  - type: web
+    name: flower-dashboard
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A app.celery_worker flower --port 5555
+    envVars:
+      - key: REDIS_URL
+        sync: false
